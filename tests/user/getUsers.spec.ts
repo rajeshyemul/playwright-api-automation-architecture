@@ -6,3 +6,9 @@ test('Login and fetch users successfully', async ({ authService, userService }) 
   const response = await userService.getUsers();
   await ResponseValidator.expectStatus(response, 200);
 });
+
+test('Login and fetch users successfully', async ({ authService, userService }) => {
+  await authService.login();
+  const response = await userService.getUserById(2);
+  await ResponseValidator.expectStatus(response, 200);
+});

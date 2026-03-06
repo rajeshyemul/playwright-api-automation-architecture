@@ -1,0 +1,15 @@
+*.tgz
+
+.DS_Store
+.env
+.idea
+.npmrc
+
+/dist/
+/node_modules/
+/playwright-report/
+/reports/
+/output/
+/test-results/
+
+package-lock.json
