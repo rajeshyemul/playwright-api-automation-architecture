@@ -11,19 +11,67 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 1
+      "actualWorkers": 2
     },
     "preserveOutput": "always",
     "projects": [
       {
         "outputDir": "/Users/rajesh.yemul/Practice Project/API_Framework_Architect/api-framework-architect-pw-ts/test-results",
         "repeatEach": 1,
-        "retries": 0,
+        "retries": 1,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 2
         },
-        "id": "",
-        "name": "",
+        "id": "smoke",
+        "name": "smoke",
+        "testDir": "/Users/rajesh.yemul/Practice Project/API_Framework_Architect/api-framework-architect-pw-ts/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/rajesh.yemul/Practice Project/API_Framework_Architect/api-framework-architect-pw-ts/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "integration",
+        "name": "integration",
+        "testDir": "/Users/rajesh.yemul/Practice Project/API_Framework_Architect/api-framework-architect-pw-ts/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/rajesh.yemul/Practice Project/API_Framework_Architect/api-framework-architect-pw-ts/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "contract",
+        "name": "contract",
+        "testDir": "/Users/rajesh.yemul/Practice Project/API_Framework_Architect/api-framework-architect-pw-ts/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/rajesh.yemul/Practice Project/API_Framework_Architect/api-framework-architect-pw-ts/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "all",
+        "name": "all",
         "testDir": "/Users/rajesh.yemul/Practice Project/API_Framework_Architect/api-framework-architect-pw-ts/tests",
         "testIgnore": [],
         "testMatch": [
@@ -36,13 +84,20 @@
     "reporter": [
       [
         "html",
-        null
+        {
+          "outputFolder": "playwright-report",
+          "open": "never"
+        }
       ],
       [
         "json",
         {
           "outputFile": "reports/results.json"
         }
+      ],
+      [
+        "list",
+        null
       ]
     ],
     "reportSlowTests": {
@@ -55,7 +110,7 @@
     "updateSnapshots": "missing",
     "updateSourceMethod": "patch",
     "version": "1.58.2",
-    "workers": 4,
+    "workers": 2,
     "webServer": null
   },
   "suites": [
@@ -64,62 +119,190 @@
       "file": "user/getUsers.spec.ts",
       "column": 0,
       "line": 0,
-      "specs": [
+      "specs": [],
+      "suites": [
         {
-          "title": "Login and fetch users successfully",
-          "ok": true,
-          "tags": [],
-          "tests": [
+          "title": "Users API — general",
+          "file": "user/getUsers.spec.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [
             {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [
+              "title": "Fetch all users returns a non-empty list",
+              "ok": true,
+              "tags": [],
+              "tests": [
                 {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 726,
-                  "errors": [],
-                  "stdout": [
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "all",
+                  "projectName": "all",
+                  "results": [
                     {
-                      "text": "[INFO] Authenticating user...\n"
-                    },
-                    {
-                      "text": "[INFO] POST → /auth/login\n"
-                    },
-                    {
-                      "text": "[INFO] Authentication successful.\n"
-                    },
-                    {
-                      "text": "[INFO] GET → /users\n"
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1970,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[2026-03-08 08:12:11.861] [INFO ] Authenticating user... {\"username\":\"emilys\"}\n"
+                        },
+                        {
+                          "text": "[2026-03-08 08:12:13.513] [INFO ] POST /auth/login {\"status\":200,\"durationMs\":1651}\n"
+                        },
+                        {
+                          "text": "[2026-03-08 08:12:13.515] [INFO ] Authentication successful. {\"username\":\"emilys\"}\n"
+                        },
+                        {
+                          "text": "[2026-03-08 08:12:13.772] [INFO ] GET /users {\"status\":200,\"durationMs\":257}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-08T08:12:11.813Z",
+                      "annotations": [],
+                      "attachments": []
                     }
                   ],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-02-18T15:50:37.445Z",
-                  "annotations": [],
-                  "attachments": []
+                  "status": "expected"
                 }
               ],
-              "status": "expected"
+              "id": "795e378e87e3ecbe8773-9baa3a72062366333af5",
+              "file": "user/getUsers.spec.ts",
+              "line": 14,
+              "column": 7
+            },
+            {
+              "title": "Fetch user by ID returns the correct user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "all",
+                  "projectName": "all",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2041,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[2026-03-08 08:12:11.860] [INFO ] Authenticating user... {\"username\":\"emilys\"}\n"
+                        },
+                        {
+                          "text": "[2026-03-08 08:12:13.504] [INFO ] POST /auth/login {\"status\":200,\"durationMs\":1642}\n"
+                        },
+                        {
+                          "text": "[2026-03-08 08:12:13.505] [INFO ] Authentication successful. {\"username\":\"emilys\"}\n"
+                        },
+                        {
+                          "text": "[2026-03-08 08:12:13.853] [INFO ] GET /users/2 {\"status\":200,\"durationMs\":348}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-08T08:12:11.814Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "795e378e87e3ecbe8773-c95125c961805d2e2c9d",
+              "file": "user/getUsers.spec.ts",
+              "line": 21,
+              "column": 7
+            },
+            {
+              "title": "Created user has all required fields",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "all",
+                  "projectName": "all",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 344,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[2026-03-08 08:12:14.144] [INFO ] POST /users/add {\"status\":201,\"durationMs\":328}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-08T08:12:13.806Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "795e378e87e3ecbe8773-45488f4a28c68eeb6bbc",
+              "file": "user/getUsers.spec.ts",
+              "line": 29,
+              "column": 7
+            },
+            {
+              "title": "Each test run generates unique user data",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "all",
+                  "projectName": "all",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-08T08:12:13.867Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "795e378e87e3ecbe8773-d80016e2ea6766f7ea27",
+              "file": "user/getUsers.spec.ts",
+              "line": 39,
+              "column": 7
             }
-          ],
-          "id": "795e378e87e3ecbe8773-10e0be3cf9c21636a5bc",
-          "file": "user/getUsers.spec.ts",
-          "line": 4,
-          "column": 5
+          ]
         }
       ]
     }
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-02-18T15:50:36.602Z",
-    "duration": 1589.1019999999999,
-    "expected": 1,
+    "startTime": "2026-03-08T08:12:10.764Z",
+    "duration": 3419.818,
+    "expected": 4,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

@@ -10,7 +10,9 @@
     "resolveJsonModule": true,
     "types": ["node", "@playwright/test"],
     "outDir": "dist",
-    "rootDir": "."
+    "rootDir": ".",
+    "skipLibCheck": true
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests"],
+  "exclude": ["node_modules", "dist"]
 }

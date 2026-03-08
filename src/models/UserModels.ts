@@ -1,13 +1,9 @@
-export interface User {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-}
-
-export interface UsersResponse {
-  users: User[];
-  total: number;
-  skip: number;
-  limit: number;
-}
+/**
+ * UserModels re-exports types derived from UserContract Zod schemas.
+ *
+ * Architectural note: types live here so other layers import from 'models'
+ * (a stable interface) rather than from 'contracts' (the validation layer).
+ * This separation means you can change the schema library without updating
+ * every import across the codebase.
+ */
+export type { User, UsersList, CreateUserRequest, DeleteUserResponse } from '../contracts/UserContract';

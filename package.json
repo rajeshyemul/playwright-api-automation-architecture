@@ -1,17 +1,30 @@
 {
   "name": "api-framework-architect-pw-ts",
   "version": "1.0.0",
-  "description": "",
+  "description": "Enterprise-grade API automation framework using Playwright, TypeScript, and Zod",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "playwright test",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:integration": "playwright test --grep @integration",
+    "test:contract": "playwright test --grep @contract",
+    "test:all": "playwright test",
+    "test:report": "playwright show-report",
+    "lint": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rajeshyemul/api-framework-architect-pw-ts.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "playwright",
+    "api-testing",
+    "typescript",
+    "zod",
+    "automation-framework",
+    "contract-testing"
+  ],
+  "author": "Rajesh Yemul - Technical Director, Quality Engineering",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
@@ -21,7 +34,12 @@
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.2.3",
+    "dotenv": "^17.3.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^9.9.0",
+    "zod": "^4.3.6"
   }
 }

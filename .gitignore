@@ -1,15 +1,24 @@
-*.tgz
+# Dependencies
+node_modules/
 
-.DS_Store
+# Build output
+dist/
+
+# Environment files (never commit secrets)
+.env.local
+.env.*.local
 .env
-.idea
-.npmrc
 
-/dist/
-/node_modules/
-/playwright-report/
-/reports/
-/output/
-/test-results/
+# Playwright outputs
+playwright-report/
+test-results/
+reports/
 
-package-lock.json
+# OS artefacts
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
