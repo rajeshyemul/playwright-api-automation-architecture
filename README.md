@@ -1,14 +1,74 @@
+# Playwright API Automation Architecture
 
-Key principles used:
+A reference implementation of a scalable API automation framework using Playwright and TypeScript, designed with architecture patterns commonly used in enterprise Quality Engineering teams.
 
-- **Service abstraction** – tests interact with business operations, not raw HTTP
-- **Typed models** – TypeScript contracts represent API responses
-- **Reusable validators** – validation logic is centralized
-- **Deterministic test data** – factories generate stable input data
-- **Observability** – framework-level metrics and failure insights
-- **Parallel execution safety**
+This repository demonstrates how to design API automation that is maintainable, extensible, and capable of scaling to hundreds of tests without increasing maintenance overhead.
 
-This design allows automation to scale without creating maintenance overhead.
+The framework emphasizes clear separation of responsibilities, strong validation, and reusable automation components.
+
+# Design Principles
+
+The framework follows several architectural principles used in mature automation systems.
+
+## Service Abstraction
+
+Tests interact with business operations instead of raw HTTP endpoints.
+```ts
+userService.getUsers()
+authService.login()
+```
+This keeps tests readable and aligned with business workflows.
+
+## Centralized API Client
+
+All HTTP communication flows through a single client layer.
+- Responsibilities include:
+- request execution
+- authentication header management
+- request logging
+- timeout configuration
+- consistent request behavior
+
+This prevents duplication and simplifies debugging.
+
+## Contract Validation
+
+API responses are validated using Zod schemas.
+Instead of validating only status codes, the framework verifies the entire response structure.
+This prevents silent API regressions when backend contracts change.
+
+## Test Data Factories
+
+Factories generate deterministic test data.
+```ts
+UserFactory.createUser()
+AuthFactory.createLoginRequest()
+```
+This ensures:
+
+- unique data for each test
+- safe parallel execution
+- reduced environment pollution
+
+## Fixture-Based Dependency Injection
+
+Playwright fixtures provide dependencies such as services and API clients automatically.
+Tests remain clean and focused on behavior.
+
+## Configuration Driven Execution
+
+Environment-specific configuration is managed through a centralized configuration manager.
+This allows the same tests to run against:
+- dev
+- qa
+- stage
+- prod
+without code changes.
+
+## Parallel Execution Safety
+
+The framework is designed for Playwright's parallel workers.
+Each worker receives isolated dependencies, preventing shared state issues.
 
 ---
 
@@ -70,20 +130,31 @@ playwright-api-automation-architecture
 
 ---
 
-# Framework Layers Explained
+# Architecture Overview
 
-## API Client
+The framework follows a layered design.
+```ts
+Tests
+   ↓
+Services
+   ↓
+ApiClient
+   ↓
+AuthManager
+   ↓
+Contracts
+```
+Each layer has a single responsibility.
 
-The API client is responsible for performing HTTP requests and handling low-level communication with the system under test.
+## Tests
 
-It centralizes:
-
-- request configuration
-- headers
-- authentication handling
-- retries
-- logging
-
+Tests describe business scenarios, not technical implementation.
+Example:
+```ts
+Login and fetch users
+Get user by ID
+```
+Tests interact only with services.
 
 ---
 
@@ -101,6 +172,47 @@ Tests call services rather than HTTP endpoints directly.
 This keeps test code clean and aligned with business workflows.
 
 ---
+
+## API Client
+
+The API client is responsible for performing HTTP requests and handling low-level communication with the system under test.
+
+It centralizes:
+
+- request configuration
+- headers management
+- authentication handling (token injection)
+- retries
+- request logginh
+- timeout configuration
+
+This ensures consistent behavior across all services.
+
+---
+
+## AuthManager
+
+AuthManager handles authentication state.
+Responsibilities include:
+- storing access tokens
+- providing tokens to requests
+- preventing repeated logins
+
+ApiClient automatically attaches tokens to authenticated requests.
+
+---
+
+## Contracts
+
+API responses are validated using Zod schemas.
+Example:
+``` ts
+LoginResponseSchema
+UsersResponseSchema
+```
+
+Schema validation ensures API responses match expected structures.
+If a backend change breaks the contract, the test fails immediately.
 
 ## Models
 
@@ -139,7 +251,6 @@ Example:
 ```ts
 UserFactory.createUser()
 ```
-
 This allows tests to run in parallel environments without conflicts.
 
 ---
@@ -163,17 +274,12 @@ This helps teams understand automation reliability over time.
 A typical test interacts with the framework like this:
 ```ts
 test('Get users', async ({ userService }) => {
-
 const users = await userService.getUsers()
-
 UserValidator.validateUserList(users)
-
 })
 ```
 
-
 The test focuses only on behavior.
-
 Infrastructure complexity remains inside the framework.
 
 ---
@@ -197,6 +303,7 @@ This architecture can be expanded to include:
 - contract testing frameworks
 - AI-assisted test generation
 - visual validation systems
+- API Mocking
 
 ---
 
