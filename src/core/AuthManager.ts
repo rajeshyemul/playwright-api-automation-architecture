@@ -14,7 +14,7 @@ import { configManager } from '../config/ConfigManager';
  *
  * Token expiry strategy: DummyJSON returns expiresInMins. We store the
  * login timestamp and treat the token as expired 60 seconds before the
- * reported expiry — giving a safe buffer for slow test machines or CI.
+ * reported expiry, giving a safe buffer for slow test machines or CI.
  */
 
 const EXPIRY_BUFFER_SECONDS = 60;
@@ -79,5 +79,5 @@ class AuthManager {
   }
 }
 
-// Singleton — one auth manager shared across the framework
+// Singleton: one auth manager shared across the framework
 export const authManager = new AuthManager();

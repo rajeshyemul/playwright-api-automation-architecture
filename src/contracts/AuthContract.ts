@@ -7,7 +7,7 @@ import { z } from 'zod';
  * Architectural pattern:
  *   1. Define the Zod schema (the single source of truth)
  *   2. Derive the TypeScript type from the schema via z.infer<>
- *   3. Never write the interface manually — it would drift from the schema
+ *   3. Never write the interface manually, it would drift from the schema
  *
  * This ensures that every response parsed through these schemas is validated
  * at runtime, not just at compile time.

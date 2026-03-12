@@ -8,7 +8,7 @@ import { z } from 'zod';
  * a field, the contract tests will catch it before your application does.
  *
  * Schemas for nested objects (address, bank, company, hair, coordinates)
- * are defined separately and composed into the parent — this keeps each
+ * are defined separately and composed into the parent, this keeps each
  * schema focused and individually testable.
  */
 
@@ -97,7 +97,7 @@ export const UserSchema = z.object({
 });
 
 /**
- * Paginated list of users — returned by GET /users and GET /users/search
+ * Paginated list of users: returned by GET /users and GET /users/search
  */
 export const UsersListSchema = z.object({
   users: z.array(UserSchema),
@@ -107,7 +107,7 @@ export const UsersListSchema = z.object({
 });
 
 /**
- * Minimal schema for user creation — only the fields required by the API
+ * Minimal schema for user creation: only the fields required by the API
  */
 export const CreateUserSchema = z.object({
   firstName: z.string().min(1),

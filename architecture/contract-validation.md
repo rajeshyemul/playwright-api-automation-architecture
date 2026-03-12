@@ -32,7 +32,6 @@ role: string
 }
 ```
 
-
 Validators can verify that responses match the expected structure.
 
 ---

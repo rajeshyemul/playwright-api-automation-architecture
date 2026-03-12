@@ -38,7 +38,6 @@ const users = await userService.getUsers()
 UserValidator.validateUserList(users)
 ```
 
-
 Tests should not contain:
 
 - HTTP request logic

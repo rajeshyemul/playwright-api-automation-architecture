@@ -63,7 +63,7 @@ export class ResponseValidator {
 
       // Record the schema violation as a metric so FailureAnalyzer can
       // surface it in the post-run report under the SCHEMA_VIOLATION category.
-      // NOTE: Playwright's APIResponse does not expose request() — we derive
+      // NOTE: Playwright's APIResponse does not expose request(), we derive
       // the HTTP method from the label (e.g. 'contract:POST /auth/login') and
       // fall back to 'UNKNOWN' when the label doesn't contain one.
       metricsCollector.record({
@@ -85,7 +85,7 @@ export class ResponseValidator {
 
   /**
    * Asserts response body matches a Zod schema using Playwright's expect().
-   * Returns void — use validateSchema() when you need the typed data back.
+   * Returns void, use validateSchema() when you need the typed data back.
    * Used in CONTRACT TESTS for assertion-only checks.
    */
   static async expectSchemaMatch<T>(

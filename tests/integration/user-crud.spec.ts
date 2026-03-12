@@ -5,9 +5,12 @@ import { User, UsersList } from '../../src/contracts/UserContract';
 /**
  * @integration — User CRUD workflow tests
  *
- * DummyJSON does not persist mutations — POST/PUT/PATCH/DELETE all return
+ * DummyJSON does not persist mutations: POST/PUT/PATCH/DELETE all return
  * the expected response shapes but don't write to a real database. These tests
  * validate the request/response contract for each CRUD operation.
+ *
+ * Teardown: tests that create resources call registry.track() so the fixture
+ * layer deletes them automatically after each test, keeping the environment clean.
  */
 
 test.describe('@integration — User CRUD', () => {
@@ -37,9 +40,10 @@ test.describe('@integration — User CRUD', () => {
     expect(response.status()).toBe(404);
   });
 
-  test('POST /users/add creates a user and returns it with an assigned ID', async ({ authenticatedUserService }) => {
+  test('POST /users/add creates a user and returns it with an assigned ID', async ({ authenticatedUserService, registry }) => {
     const payload = UserFactory.create();
     const created: User = await authenticatedUserService.createUser(payload);
+    registry.track('user', created.id);   // register for cleanup
 
     expect(created.id).toBeDefined();
     expect(created.id).toBeGreaterThan(0);
@@ -48,29 +52,33 @@ test.describe('@integration — User CRUD', () => {
     expect(created.email).toBe(payload.email);
   });
 
-  test('POST /users/add with different users produces unique data', async ({ authenticatedUserService }) => {
+  test('POST /users/add with different users produces unique data', async ({ authenticatedUserService, registry }) => {
     const [payload1, payload2] = UserFactory.createBulk(2);
 
     const user1: User = await authenticatedUserService.createUser(payload1);
     const user2: User = await authenticatedUserService.createUser(payload2);
+    registry.track('user', user1.id);    // register both for cleanup
+    registry.track('user', user2.id);
 
     expect(user1.email).not.toBe(user2.email);
     expect(user1.firstName).toBeDefined();
     expect(user2.firstName).toBeDefined();
   });
 
-  test('PUT /users/:id replaces user fields', async ({ authenticatedUserService }) => {
+  test('PUT /users/:id replaces user fields', async ({ authenticatedUserService, registry }) => {
     const update = UserFactory.create({ firstName: 'UpdatedFirstName' });
     const updated: User = await authenticatedUserService.updateUser(1, update);
+    registry.track('user', updated.id);
 
     expect(updated.id).toBe(1);
     expect(updated.firstName).toBe('UpdatedFirstName');
   });
 
-  test('PATCH /users/:id partially updates a user', async ({ authenticatedUserService }) => {
+  test('PATCH /users/:id partially updates a user', async ({ authenticatedUserService, registry }) => {
     const patched: User = await authenticatedUserService.patchUser(1, {
       firstName: 'PatchedName',
     });
+    registry.track('user', patched.id);
 
     expect(patched.id).toBe(1);
     expect(patched.firstName).toBe('PatchedName');

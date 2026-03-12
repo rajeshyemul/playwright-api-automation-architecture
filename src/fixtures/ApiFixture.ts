@@ -2,8 +2,11 @@ import { test as base, request, APIRequestContext } from '@playwright/test';
 import { ApiClient } from '../core/ApiClient';
 import { UserService } from '../services/UserService';
 import { AuthService } from '../services/AuthService';
+import { ProductService } from '../services/ProductService';
 import { configManager } from '../config/ConfigManager';
 import { metricsCollector } from '../observability/MetricsCollector';
+import { TestDataRegistry } from '../config/Testdataregistry';
+import { TestDataCleanup } from '../config/Testdatacleanup';
 
 /**
  * ApiFixture extends Playwright's base test with typed, pre-wired fixtures.
@@ -11,24 +14,31 @@ import { metricsCollector } from '../observability/MetricsCollector';
  * Architectural pattern:
  *   - Tests declare what they need as fixture parameters
  *   - The framework wires up the dependency graph automatically
- *   - Teardown (context disposal, metrics, failure report) is guaranteed
- *     even if a test throws — Playwright fixtures handle this via try/finally
+ *   - Teardown (context disposal, metrics, cleanup) is guaranteed even if a
+ *     test throws — Playwright fixtures handle this via try/finally
  *
  * Available fixtures:
- *   - apiContext   : raw Playwright APIRequestContext (rarely needed in tests)
- *   - apiClient    : framework HttpClient (used by services internally)
- *   - userService  : business operations on the User domain
- *   - authService  : authentication workflows
- *   - authenticatedUserService : userService pre-authenticated (login called)
+ *   - apiContext                 : raw Playwright APIRequestContext
+ *   - apiClient                  : framework HttpClient (used by services)
+ *   - authService                : authentication workflows
+ *   - userService                : unauthenticated User domain operations
+ *   - authenticatedUserService   : userService with login pre-called
+ *   - productService             : unauthenticated Product domain operations
+ *   - authenticatedProductService: productService with login pre-called
+ *   - registry                   : TestDataRegistry — tracks created resources
+ *                                  for automatic cleanup after the test
  */
 
 type ApiFixtures = {
-  apiContext:               APIRequestContext;
-  apiClient:                ApiClient;
-  userService:              UserService;
-  authService:              AuthService;
-  authenticatedUserService: UserService;
-  flushMetrics:             void;   // auto fixture — flushes metrics to disk after every test
+  apiContext:                   APIRequestContext;
+  apiClient:                    ApiClient;
+  userService:                  UserService;
+  authService:                  AuthService;
+  authenticatedUserService:     UserService;
+  productService:               ProductService;
+  authenticatedProductService:  ProductService;
+  registry:                     TestDataRegistry;
+  flushMetrics:                 void;
 };
 
 export const test = base.extend<ApiFixtures>({
@@ -63,9 +73,40 @@ export const test = base.extend<ApiFixtures>({
     await use(new UserService(apiClient));
   },
 
-  // Auto fixture — runs for every test without being declared explicitly.
-  // Flushes the worker's in-memory metrics to the shared NDJSON buffer file
-  // so that global-teardown (a separate process) can read them for reporting.
+  // Unauthenticated product service
+  productService: async ({ apiClient }, use) => {
+    await use(new ProductService(apiClient));
+  },
+
+  // Pre-authenticated product service
+  authenticatedProductService: async ({ apiClient }, use) => {
+    const authSvc = new AuthService(apiClient);
+    await authSvc.login();
+    await use(new ProductService(apiClient));
+  },
+
+  /**
+   * TestDataRegistry — tracks resources created during a test.
+   *
+   * After the test body completes (pass or fail), the fixture teardown runs
+   * TestDataCleanup to delete every registered resource via the API.
+   * This keeps the environment clean without requiring any cleanup code
+   * inside the test itself.
+   *
+   * Usage:
+   *   const user = await authenticatedUserService.createUser(payload);
+   *   registry.track('user', user.id);
+   */
+  registry: async ({ apiClient }, use) => {
+    const reg = new TestDataRegistry();
+    await use(reg);
+
+    // Teardown — runs after the test body, even if the test threw
+    const cleanup = new TestDataCleanup(apiClient);
+    await cleanup.cleanup(reg);
+  },
+
+  // Auto fixture — flushes per-worker metrics to disk after every test
   flushMetrics: [async ({}, use) => {
     await use();
     metricsCollector.flush();
