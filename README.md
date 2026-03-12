@@ -309,7 +309,7 @@ This architecture can be expanded to include:
 
 # Detail Framework Architecture
 
-You can find in detail explanation of the framework architecture [here](./FRAMEWORK_ARCHITECTURE)
+You can find in detail explanation of the framework architecture [here](./FRAMEWORK_ARCHITECTURE.md)
 
 # Author
 
