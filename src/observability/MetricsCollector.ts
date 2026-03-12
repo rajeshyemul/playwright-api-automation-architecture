@@ -1,24 +1,42 @@
+import * as fs   from 'fs';
+import * as path from 'path';
 import { logger } from '../core/Logger';
 
 /**
  * MetricsCollector instruments every HTTP call made through the framework.
  *
- * Architectural note: observability is not a test-level concern — it belongs
+ * Architectural note: observability is not a test-level concern, it belongs
  * in the infrastructure layer. By collecting metrics inside ApiClient, every
  * service and test automatically gains visibility without any additional code.
  *
- * At suite completion, printSummary() can be called from a global teardown
- * to surface endpoint-level health metrics: throughput, latency, failure rates.
+ * Cross-process persistence:
+ *   Playwright runs global setup/teardown in a separate Node.js process from
+ *   the test workers, so the in-memory singleton cannot be read by teardown
+ *   directly. Instead, workers call flush() after each test to append metrics
+ *   to a shared NDJSON buffer file. Global teardown calls loadFromDisk() to
+ *   reconstruct the full picture before printing the summary.
+ *
+ * Buffer file: reports/.metrics-buffer.ndjson
+ *   - Created/cleared by global-setup
+ *   - Appended to (one JSON line per metric) by each worker after every test
+ *   - Read back by global-teardown for reporting
  */
 
+/** Absolute path to the cross-process metrics buffer file. */
+export const METRICS_BUFFER_PATH = path.resolve(
+  __dirname, '..', '..', 'reports', '.metrics-buffer.ndjson'
+);
+
 export interface RequestMetric {
-  method:     string;
-  endpoint:   string;
-  statusCode: number;
-  durationMs: number;
-  success:    boolean;
-  timestamp:  string;
-  retries:    number;
+  method:          string;
+  endpoint:        string;
+  statusCode:      number;
+  durationMs:      number;
+  success:         boolean;
+  timestamp:       string;
+  retries:         number;
+  schemaViolation?: boolean;   // set by ResponseValidator on Zod parse failures
+  errorMessage?:   string;     // set by ApiClient on network/timeout errors
 }
 
 export interface EndpointSummary {
@@ -32,7 +50,7 @@ export interface EndpointSummary {
   failCount:   number;
 }
 
-class MetricsCollector {
+export class MetricsCollector {
   private metrics: RequestMetric[] = [];
 
   record(metric: RequestMetric): void {
@@ -96,6 +114,64 @@ class MetricsCollector {
 
   reset(): void {
     this.metrics = [];
+  }
+
+  /**
+   * Appends all in-memory metrics to the shared NDJSON buffer file and clears
+   * the in-memory list. Safe to call from multiple concurrent workers — each
+   * line is a self-contained JSON object, and appendFileSync is atomic per line.
+   *
+   * Call this from the ApiFixture after each test's context is disposed.
+   */
+  flush(): void {
+    if (this.metrics.length === 0) return;
+
+    try {
+      fs.mkdirSync(path.dirname(METRICS_BUFFER_PATH), { recursive: true });
+      const lines = this.metrics.map(m => JSON.stringify(m)).join('\n') + '\n';
+      fs.appendFileSync(METRICS_BUFFER_PATH, lines, 'utf8');
+    } catch (err) {
+      logger.warn('MetricsCollector.flush() failed — metrics will not appear in teardown report', { err });
+    }
+
+    this.metrics = [];
+  }
+
+  /**
+   * Reads the NDJSON buffer file and loads all metrics into memory.
+   * Call this from global-teardown before printing the summary.
+   */
+  static loadFromDisk(): MetricsCollector {
+    const collector = new MetricsCollector();
+
+    if (!fs.existsSync(METRICS_BUFFER_PATH)) return collector;
+
+    try {
+      const raw = fs.readFileSync(METRICS_BUFFER_PATH, 'utf8');
+      const metrics = raw
+        .split('\n')
+        .filter(line => line.trim() !== '')
+        .map(line => JSON.parse(line) as RequestMetric);
+      collector.metrics.push(...metrics);
+    } catch (err) {
+      logger.warn('MetricsCollector.loadFromDisk() failed — report may be incomplete', { err });
+    }
+
+    return collector;
+  }
+
+  /**
+   * Deletes the buffer file. Call from global-setup to ensure a clean slate
+   * at the start of every run.
+   */
+  static clearBuffer(): void {
+    try {
+      if (fs.existsSync(METRICS_BUFFER_PATH)) {
+        fs.unlinkSync(METRICS_BUFFER_PATH);
+      }
+    } catch (err) {
+      logger.warn('MetricsCollector.clearBuffer() failed', { err });
+    }
   }
 
   private groupByEndpoint(): Record<string, RequestMetric[]> {

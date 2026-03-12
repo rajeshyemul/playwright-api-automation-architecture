@@ -4,6 +4,12 @@ import { configManager } from './src/config/ConfigManager';
 export default defineConfig({
   testDir: './tests',
 
+  // Global setup/teardown — wired to the observability layer.
+  // setup  : resets MetricsCollector so each run starts clean
+  // teardown: prints API metrics summary + FailureAnalyzer diagnostics
+  globalSetup:    './src/config/global-setup',
+  globalTeardown: './src/config/global-teardown',
+
   // Limit workers to 2 to avoid hitting DummyJSON's rate limiter (429).
   // DummyJSON is a public free API — running too many parallel logins triggers
   // "request limit exceeded". 2 workers is a safe balance of speed vs. rate limits.

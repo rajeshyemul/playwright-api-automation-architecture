@@ -91,6 +91,7 @@ export class ApiClient {
           success: false,
           timestamp: new Date().toISOString(),
           retries: attempt,
+          errorMessage: lastError.message,
         });
 
         logger.error(`${method} ${endpoint} — network error`, { error: lastError.message });

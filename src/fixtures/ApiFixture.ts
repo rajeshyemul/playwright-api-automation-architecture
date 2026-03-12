@@ -4,7 +4,6 @@ import { UserService } from '../services/UserService';
 import { AuthService } from '../services/AuthService';
 import { configManager } from '../config/ConfigManager';
 import { metricsCollector } from '../observability/MetricsCollector';
-import { FailureAnalyzer } from '../observability/FailureAnalyzer';
 
 /**
  * ApiFixture extends Playwright's base test with typed, pre-wired fixtures.
@@ -29,6 +28,7 @@ type ApiFixtures = {
   userService:              UserService;
   authService:              AuthService;
   authenticatedUserService: UserService;
+  flushMetrics:             void;   // auto fixture — flushes metrics to disk after every test
 };
 
 export const test = base.extend<ApiFixtures>({
@@ -62,6 +62,14 @@ export const test = base.extend<ApiFixtures>({
     await authSvc.login();
     await use(new UserService(apiClient));
   },
+
+  // Auto fixture — runs for every test without being declared explicitly.
+  // Flushes the worker's in-memory metrics to the shared NDJSON buffer file
+  // so that global-teardown (a separate process) can read them for reporting.
+  flushMetrics: [async ({}, use) => {
+    await use();
+    metricsCollector.flush();
+  }, { auto: true }],
 
 });
 

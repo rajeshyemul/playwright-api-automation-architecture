@@ -34,8 +34,8 @@ export class FailureAnalyzer {
    * Analyze all recorded metrics and return a list of failure diagnostics.
    * Call this after a test suite completes to get a structured failure report.
    */
-  static analyze(): FailureDiagnostic[] {
-    const failures = metricsCollector.getAll().filter(m => !m.success);
+  static analyze(collector = metricsCollector): FailureDiagnostic[] {
+    const failures = collector.getAll().filter(m => !m.success);
 
     if (failures.length === 0) return [];
 
@@ -59,8 +59,8 @@ export class FailureAnalyzer {
     return diagnostics.sort((a, b) => b.count - a.count);
   }
 
-  static printReport(): void {
-    const diagnostics = this.analyze();
+  static printReport(collector = metricsCollector): void {
+    const diagnostics = this.analyze(collector);
 
     if (diagnostics.length === 0) {
       logger.info('FailureAnalyzer: No failures detected.');
@@ -82,13 +82,25 @@ export class FailureAnalyzer {
   }
 
   private static categorize(metric: RequestMetric): FailureCategory {
+    // Schema violations are flagged explicitly by ResponseValidator — check
+    // this first so they don't fall through to a status-code category.
+    if (metric.schemaViolation)                    return 'SCHEMA_VIOLATION';
+
     const { statusCode } = metric;
 
-    if (statusCode === 401 || statusCode === 403) return 'AUTH_FAILURE';
+    if (statusCode === 401 || statusCode === 403)  return 'AUTH_FAILURE';
     if (statusCode === 404)                        return 'NOT_FOUND';
     if (statusCode >= 500)                         return 'SERVER_ERROR';
     if (statusCode >= 400)                         return 'CLIENT_ERROR';
-    if (statusCode === 0)                          return 'NETWORK_ERROR';
+
+    // statusCode === 0 means the request never got a response.
+    // Distinguish timeouts from other network failures via the error message
+    // stored on the metric (Playwright timeout errors contain "timeout").
+    if (statusCode === 0) {
+      const msg = (metric as RequestMetric & { errorMessage?: string }).errorMessage ?? '';
+      if (msg.toLowerCase().includes('timeout'))   return 'TIMEOUT';
+      return 'NETWORK_ERROR';
+    }
 
     return 'UNKNOWN';
   }

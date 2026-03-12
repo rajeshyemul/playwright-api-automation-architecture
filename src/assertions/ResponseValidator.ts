@@ -1,6 +1,7 @@
 import { expect, APIResponse } from '@playwright/test';
 import { ZodSchema, ZodError } from 'zod';
 import { logger } from '../core/Logger';
+import { metricsCollector } from '../observability/MetricsCollector';
 
 export class ResponseValidator {
   // ─── HTTP Assertions ──────────────────────────────────────────────────────
@@ -59,6 +60,23 @@ export class ResponseValidator {
 
     if (!result.success) {
       const issues = formatZodError(result.error);
+
+      // Record the schema violation as a metric so FailureAnalyzer can
+      // surface it in the post-run report under the SCHEMA_VIOLATION category.
+      // NOTE: Playwright's APIResponse does not expose request() — we derive
+      // the HTTP method from the label (e.g. 'contract:POST /auth/login') and
+      // fall back to 'UNKNOWN' when the label doesn't contain one.
+      metricsCollector.record({
+        method:          extractMethod(label),
+        endpoint:        new URL(response.url()).pathname,
+        statusCode:      response.status(),
+        durationMs:      0,
+        success:         false,
+        timestamp:       new Date().toISOString(),
+        retries:         0,
+        schemaViolation: true,
+      });
+
       throw new Error(`[${label}] Schema validation failed:\n${issues}`);
     }
 
@@ -80,6 +98,23 @@ export class ResponseValidator {
 
     if (!result.success) {
       const issues = formatZodError(result.error);
+
+      // Record the schema violation as a metric so FailureAnalyzer can
+      // surface it in the post-run report under the SCHEMA_VIOLATION category.
+      // NOTE: Playwright's APIResponse does not expose request() — we derive
+      // the HTTP method from the label (e.g. 'contract:POST /auth/login') and
+      // fall back to 'UNKNOWN' when the label doesn't contain one.
+      metricsCollector.record({
+        method:          extractMethod(label),
+        endpoint:        new URL(response.url()).pathname,
+        statusCode:      response.status(),
+        durationMs:      0,
+        success:         false,
+        timestamp:       new Date().toISOString(),
+        retries:         0,
+        schemaViolation: true,
+      });
+
       // Fail via Playwright assertion so it shows up in the HTML report
       expect(
         result.success,
@@ -107,4 +142,20 @@ function formatZodError(error: ZodError): string {
       return `  • ${path}: ${issue.message}`;
     })
     .join('\n');
+}
+
+/**
+ * Extracts an HTTP method from a label string.
+ *
+ * Callers pass labels like:
+ *   'contract:POST /auth/login'   → 'POST'
+ *   'contract:GET /users/:id'     → 'GET'
+ *   'getUsers'                    → 'UNKNOWN'
+ *
+ * Playwright's APIResponse does not expose the originating request object,
+ * so the label is the only reliable source of method information here.
+ */
+function extractMethod(label: string): string {
+  const match = label.match(/\b(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\b/i);
+  return match ? match[1].toUpperCase() : 'UNKNOWN';
 }
