@@ -188,7 +188,7 @@ It centralizes:
 - headers management
 - authentication handling (token injection)
 - retries
-- request logginh
+- request login
 - timeout configuration
 
 This ensures consistent behavior across all services.
