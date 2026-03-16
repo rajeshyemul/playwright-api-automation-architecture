@@ -1,5 +1,9 @@
 # Playwright API Automation Architecture
 
+![Playwright](https://img.shields.io/badge/Playwright-v1.57-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 A reference implementation of a scalable API automation framework using Playwright and TypeScript, designed with architecture patterns commonly used in enterprise Quality Engineering teams.
 
 This repository demonstrates how to design API automation that is maintainable, extensible, and capable of scaling to hundreds of tests without increasing maintenance overhead.
